@@ -2,11 +2,12 @@
 
 
 
+
 /*
  * variable to store time of thask scheduler
  */
 static volatile time_t schedulerTime = 0;
-static TaskScheduler_Typedef* scheduledTasks = NULL;
+static TSCH_TCB* scheduledTasks = NULL;
 static TSCH_TCB TSCH_getSchedulerTime(void);
 TaskScheduler_Status TSCH_enableTask(TaskScheduler_Typedef* self);
 TaskScheduler_Status TSCH_disableTask(TaskScheduler_Typedef* self);
@@ -20,11 +21,15 @@ TaskScheduler_Status TSCH_create(TaskScheduler_Typedef* self,uint32_t stackFrame
 
 TaskScheduler_Status TSCH_InitScheduler()
 {
+	
 	CHECK_NOT_NULL(scheduledTasks);
-	if(!TSCH_getSchedulerTime())
+	TSCH_TCB * current = scheduledTasks;
+	while(!(current->nextTask)==NULL)
 	{
-		return TaskSCH_ERROR;
+		INIT_DUMMY_STACK(current)
+		current = current->nextTask;
 	}
+	
 	return TaskSCH_OK;
 }
 

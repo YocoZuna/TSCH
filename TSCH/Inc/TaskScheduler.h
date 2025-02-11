@@ -27,14 +27,29 @@ typedef struct Task
 
 }TaskScheduler_Typedef;
 
+
+
 typedef struct TCB{
 	struct Task* task;
 	uint32_t* stackFrame;
 	struct TCB* nextTask;
 }TSCH_TCB;
 
+#define DUMMY_XPSR 0x00100000U
+#define DUMMY_EXEC_RETURN 0xFFFFFFFDU
 #define TSCH_getTicks() HAL_GetTick()
-
+#define INIT_DUMMY_STACK(stackPointer) 	do{ \
+										stackPointer->stackFrame--;*stackPointer->stackFrame = DUMMY_XPSR; \
+										stackPointer->stackFrame--;*stackPointer->stackFrame = stackPointer->task->TaskFunction; \
+										stackPointer->stackFrame--;*stackPointer->stackFrame = DUMMY_EXEC_RETURN; \
+										for (int i=0;i<13;i++) {stackPointer->stackFrame--;*stackPointer->stackFrame = 0;};
+										}while(0)
+/*
+	xPSR -> Setting T bit to 1
+	PC -> return addres to task handler
+	LR -> EXEC Return 
+*/
+#define TSCH_MakeDummyFrame(taskHandlerFuntion) (uint32_t[3]){0x01000000,taskHandlerFuntion,0xFFFFFFFD}
 #define CHECK_NOT_NULL(x) do{								\
 							if(!x)							\
 							return TaskSCH_ERROR;}while(0)  \
